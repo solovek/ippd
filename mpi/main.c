@@ -40,25 +40,3 @@ int main (int argc, char** argv)
   MPI_Finalize();
   return 0;
 }
-
-int* rndarr (int sz)
-{
-  int* v;
-  int  i;
-
-  v = malloc(sz * sizeof(int));
-
-  for (i = 0; i < sz; i++)
-    v[i] = rand() % 100;
-
-  return v;
-}
-
-void prnarr (int* v, int sz)
-{
-  int i;
-
-  for (i = 0; i < sz; i++)
-    printf("%d ", v[i]);
-  printf("\n");
-}
