@@ -4,7 +4,7 @@
 #include <time.h>
 
 int* rndarr (int);
-void msort  (int*, int);
+int* msort  (int*, int);
 void prnarr (int*, int);
 
 int g_comm_sz;
@@ -13,9 +13,8 @@ int grank;
 int main (int argc, char** argv)
 {
   int* v = NULL;
+  int* r = NULL;
   int  sz;
-  int  psz;
-  int  i;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &g_comm_sz);
@@ -29,16 +28,15 @@ int main (int argc, char** argv)
       v = rndarr(sz);
     }
 
-    msort(v, sz);
+    v = msort(v, sz);
 
-    /*
-    if (!grank)
+    if (!grank) /* top again */
       prnarr(v, sz);
-    */
   } else {
     printf("usage: %s size\n", argv[0]);
   }
-    
+
+  free(v);
   MPI_Finalize();
   return 0;
 }

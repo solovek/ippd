@@ -3,39 +3,47 @@
 #include <stdlib.h>
 #include <time.h>
 
-static void split (int*, int, int);
-static void merge (int*, int, int, int);
+static void split  (int*, int,  int);
+static void merge_ (int*, int,  int, int);
+static int* merge  (int*, int*, int, int, int);
 
 extern int g_comm_sz;
 extern int grank;
 
-void msort (int* v, int sz)
+int* msort (int* v, int sz)
 {
   int psz;
+  int fsz;
   int i;
   int* w;
-  
+
+  fsz = 0;
   psz = sz / (g_comm_sz - 1);
   w = malloc(psz * sizeof(int));
   
   if (!grank) { /* top */
-    for (i = 1; i < g_comm_sz; i++) {
+    for (i = 1; i < g_comm_sz; i++) { /* scatter the array */
       MPI_Send(v + psz * (i-1), psz, MPI_INT, i, 0, MPI_COMM_WORLD);
     }
     
-    for (i = 1; i < g_comm_sz; i++) {
+    /* use this to make it non destructive*/
+    //v = NULL;
+    
+    for (i = 1; i < g_comm_sz; i++) { /* last merges */
       /*receive sorted sub arrays here*/
       MPI_Recv(w, psz, MPI_INT, i, 0, MPI_COMM_WORLD,
 	                              MPI_STATUS_IGNORE);
-      prnarr(w, psz);
+      v = merge(v, w, fsz, psz, 1);
+      fsz += psz;
     }
+
+    return v;
   } else { /* bottoms */
     MPI_Recv(w, psz, MPI_INT, 0, 0, MPI_COMM_WORLD,
 	                            MPI_STATUS_IGNORE);
-
     split(w, 0, psz);
-    
     MPI_Send(w, psz, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    return NULL;
   }
 }
 
@@ -48,11 +56,48 @@ static void split (int* v, int l, int r)
     split(v,   l, m);
     split(v, m+1, r);
 
-    merge(v, l, m, r);
+    merge_(v, l, m, r);
   }
 }
 
-static void merge (int* v, int l, int m, int r)
+static int* merge (int* v, int* w, int vsz, int wsz, int flg)
+{
+  int* r;
+  int  rsz;
+  int  i, j, k;
+
+  rsz = vsz + wsz;
+  r = malloc(rsz * sizeof(int));
+
+  i = 0;
+  j = 0;
+  k = 0;
+  
+  while (i < vsz && j < wsz) {
+    if (v[i] <= w[j]) {
+      r[k] = v[i];
+      i++;
+    } else if (v[i] > w[j]) {
+      r[k] = w[j];
+      j++;
+    }
+    k++;
+  }
+
+  while (i < vsz)
+    r[k++] = v[i++];
+  while (j < wsz)
+    r[k++] = w[j++];
+
+  if (flg & 0x01)
+    free(v);
+  if (flg & 0x02)
+    free(w);
+
+  return r;
+}
+
+static void merge_ (int* v, int l, int m, int r)
 {
   int i, j, k; 
   int n1 = m - l + 1; 
