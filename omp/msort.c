@@ -34,11 +34,11 @@ static int* split (int* v, int sz)
     usz = sz / 2;
     wsz = sz - usz;
 
-    //#   pragma omp task
+#   pragma omp task shared(u)
     u = split(v,       usz);
     w = split(v + usz, wsz);
 
-    //#   pragma omp taskwait
+#   pragma omp taskwait
     v = merge(u, w, usz, wsz);
 
     if (flg & 0x01 && u)
