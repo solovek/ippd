@@ -5,6 +5,8 @@
 static int* split (int*, int);
 static int* merge (int*, int*, int, int);
 
+int gtasksz = 100;
+
 int* msort (int* v, int sz)
 {
   int* r;
@@ -34,7 +36,8 @@ static int* split (int* v, int sz)
     usz = sz / 2;
     wsz = sz - usz;
 
-#   pragma omp task shared(u)
+    /*pau no cu de quem ta lendo*/
+#   pragma omp task shared(u) if (sz >= gtasksz)
     u = split(v,       usz);
     w = split(v + usz, wsz);
 
