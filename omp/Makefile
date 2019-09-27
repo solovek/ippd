@@ -3,5 +3,5 @@ OBJ = $(shell find . -name "*.c")
 EXE = msort
 
 all:
-	$(CC) -o $(EXE) $(OBJ) -fopenmp ../util.c
+	$(CC) -o $(EXE) $(OBJ) -g -fopenmp ../util.c
 

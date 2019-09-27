@@ -9,15 +9,19 @@ int* msort (int*, int);
 int main (int argc, char** argv)
 {
   int* v;
+  int* w;
   int  sz;
 
   if (argc == 2) {
     sz = atoi(argv[1]);
     v  = rndarr(sz);
 
-    v = msort(v, sz);
+    w = msort(v, sz);
 
-    prnarr(v, sz);
+    prnarr(w, sz);
+
+    free(v);
+    free(w);
   } else {
     printf("usage: %s size\n", argv[0]);
   }
