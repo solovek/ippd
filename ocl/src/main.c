@@ -46,8 +46,8 @@ int main (int argc, char** argv)
   h_c = rndarrf(gsz);
 
   err = clGetPlatformIDs(0, NULL, &noplatforms);
-
-  assert(platform = malloc(noplatforms * sizeof(cl_platform_id)));
+  
+  platform = calloc(noplatforms, sizeof(cl_platform_id));
   
   for (i = 0; i < noplatforms; i++)
     if ((err = clGetDeviceIDs(platform[i], CL_DEVICE_TYPE_DEFAULT,
