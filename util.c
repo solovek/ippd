@@ -17,6 +17,19 @@ int* rndarr (int sz)
   return v;
 }
 
+float* rndarrf (int sz)
+{
+  float* v;
+  int    i;
+
+  v = malloc(sz * sizeof(float));
+
+  for (i = 0; i < sz; i++)
+    v[i] = rand();
+
+  return v;
+}
+
 void prnarr (int* v, int sz)
 {
   int i;
