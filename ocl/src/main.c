@@ -2,38 +2,27 @@
 #include <CL/cl.h>
 #include <stdlib.h>
 
-extern float* rndarrf (int);
+extern float* rndarrf  (int);
+extern char*  readfile (char*);
 
-const char* vmult =
-  "__kernel void vmult ("
-  "  __global float* a,"
-  "  __global float* b,"
-  "  __global float* c,"
-  "  __const unsigned int sz)"
-  "{"
-  "  int i = get_global_id(0);"
-  "  if (i < sz)"
-  "    c[i] = a[i] * b[i];"
-  "}"
-  "\n";
-
-const int gsz = 1024;
+const int gsz = 5;
 
 int main (int argc, char** argv)
 {
-  int err;
-  int i;
+  cl_int err;
+  int    i;
   float* h_a;
   float* h_b;
   float* h_c;
   int    length;
   size_t global;
+  char*  kernel_src;
 
   cl_device_id     device_id;
   cl_context       context;
   cl_command_queue commands;
   cl_program       program;
-  cl_kernel        ko_vmult;
+  cl_kernel        kernel;
 
   cl_mem d_a;
   cl_mem d_b;
@@ -64,11 +53,15 @@ int main (int argc, char** argv)
   commands = clCreateCommandQueueWithProperties(context, device_id,
 						      0, &err);
 
-  program = clCreateProgramWithSource(context, 1, &vmult, NULL, &err);
+  kernel_src = readfile("cl_kernels/mult.cl");
+  
+  program = clCreateProgramWithSource(context,     1,
+				      &kernel_src, NULL,
+				      &err);
 
   err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 
-  ko_vmult = clCreateKernel(program, "vmult", &err);
+  kernel = clCreateKernel(program, "vmult", &err);
 
   d_a = clCreateBuffer(context, CL_MEM_READ_ONLY,
 		        length, NULL, &err);
@@ -84,13 +77,13 @@ int main (int argc, char** argv)
 			     length,   h_b,       0, NULL,
 			     NULL);
 
-  err  = clSetKernelArg(ko_vmult, 0, sizeof(cl_mem), &d_a);
-  err |= clSetKernelArg(ko_vmult, 1, sizeof(cl_mem), &d_b);
-  err |= clSetKernelArg(ko_vmult, 2, sizeof(cl_mem), &d_c);
-  err |= clSetKernelArg(ko_vmult, 3, sizeof(unsigned int), &gsz);
+  err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_a);
+  err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_b);
+  err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &d_c);
+  err |= clSetKernelArg(kernel, 3, sizeof(unsigned int), &gsz);
 
   global = gsz;
-  err = clEnqueueNDRangeKernel(commands, ko_vmult,    1,
+  err = clEnqueueNDRangeKernel(commands, kernel,    1,
 			           NULL,  &global, NULL,
 			              0,     NULL, NULL);
 
@@ -100,11 +93,15 @@ int main (int argc, char** argv)
 			      length, h_c,       0, NULL,
 			        NULL);
 
+  prnarrf(h_a, gsz);
+  prnarrf(h_b, gsz);
+  prnarrf(h_c, gsz);
+  
   clReleaseMemObject(d_a);
   clReleaseMemObject(d_b);
   clReleaseMemObject(d_c);
   clReleaseProgram(program);
-  clReleaseKernel(ko_vmult);
+  clReleaseKernel(kernel);
   clReleaseCommandQueue(commands);
   clReleaseContext(context);
 
