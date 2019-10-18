@@ -26,6 +26,7 @@ int main (int argc, char** argv)
   float* h_a;
   float* h_b;
   float* h_c;
+  int    length;
   size_t global;
 
   cl_device_id     device_id;
@@ -45,6 +46,8 @@ int main (int argc, char** argv)
   h_b = rndarrf(gsz);
   h_c = rndarrf(gsz);
 
+  length = gsz * sizeof(float);
+  
   err = clGetPlatformIDs(0, NULL, &noplatforms);
   
   platform = calloc(noplatforms, sizeof(cl_platform_id));
@@ -58,7 +61,8 @@ int main (int argc, char** argv)
 
   context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
 
-  commands = clCreateCommandQueueWithProperties(context, device_id, 0, &err);
+  commands = clCreateCommandQueueWithProperties(context, device_id,
+						      0, &err);
 
   program = clCreateProgramWithSource(context, 1, &vmult, NULL, &err);
 
@@ -66,17 +70,19 @@ int main (int argc, char** argv)
 
   ko_vmult = clCreateKernel(program, "vmult", &err);
 
-  d_a = clCreateBuffer(context, CL_MEM_READ_ONLY, gsz * sizeof(float),
-			NULL, &err);
-  d_b = clCreateBuffer(context, CL_MEM_READ_ONLY, gsz * sizeof(float),
-			NULL, &err);
-  d_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY, gsz * sizeof(float),
-		       NULL, &err);
+  d_a = clCreateBuffer(context, CL_MEM_READ_ONLY,
+		        length, NULL, &err);
+  d_b = clCreateBuffer(context, CL_MEM_READ_ONLY,
+		        length, NULL, &err);
+  d_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
+		        length, NULL, &err);
 
-  err = clEnqueueWriteBuffer(commands, d_a, CL_TRUE, 0, gsz * sizeof(float),
-			     h_a, 0, NULL, NULL);
-  err = clEnqueueWriteBuffer(commands, d_b, CL_TRUE, 0, gsz * sizeof(float),
-			     h_b, 0, NULL, NULL);
+  err = clEnqueueWriteBuffer(commands, d_a, CL_TRUE,    0,
+			     length,   h_a,       0, NULL,
+			     NULL);
+  err = clEnqueueWriteBuffer(commands, d_b, CL_TRUE,    0,
+			     length,   h_b,       0, NULL,
+			     NULL);
 
   err  = clSetKernelArg(ko_vmult, 0, sizeof(cl_mem), &d_a);
   err |= clSetKernelArg(ko_vmult, 1, sizeof(cl_mem), &d_b);
@@ -84,13 +90,15 @@ int main (int argc, char** argv)
   err |= clSetKernelArg(ko_vmult, 3, sizeof(unsigned int), &gsz);
 
   global = gsz;
-  err = clEnqueueNDRangeKernel(commands, ko_vmult, 1, NULL, &global,
-			       NULL, 0, NULL, NULL);
+  err = clEnqueueNDRangeKernel(commands, ko_vmult,    1,
+			           NULL,  &global, NULL,
+			              0,     NULL, NULL);
 
   err = clFinish(commands);
 
-  err = clEnqueueReadBuffer(commands, d_c, CL_TRUE, 0, gsz * sizeof(float),
-			    h_c, 0, NULL, NULL );
+  err = clEnqueueReadBuffer(commands, d_c, CL_TRUE,    0,
+			      length, h_c,       0, NULL,
+			        NULL);
 
   clReleaseMemObject(d_a);
   clReleaseMemObject(d_b);
