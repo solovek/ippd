@@ -134,6 +134,15 @@ int main (int argc, char** argv)
   prnarrf(h_b, gsz);
   prnarrf(h_c, gsz);
 
+  if (!strcmp(argv[1], "trap")) {
+    float acc;
+    for (i = 0, acc = 0; i < gsz-1; i++) {
+      acc += h_c[i];
+    }
+
+    printf("area: %f\n", acc);
+  }
+  
   clReleaseMemObject(d_a);
   clReleaseMemObject(d_b);
   clReleaseMemObject(d_c);
