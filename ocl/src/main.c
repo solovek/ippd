@@ -2,10 +2,14 @@
 #include <CL/cl.h>
 #include <stdlib.h>
 
+extern void   prnarrf  (float*, int);
 extern float* rndarrf  (int);
 extern char*  readfile (char*);
+extern char** loadpath (char*, int*);
 
 const int gsz = 5;
+
+int inner_main ();
 
 int main (int argc, char** argv)
 {
@@ -16,7 +20,8 @@ int main (int argc, char** argv)
   float* h_c;
   int    length;
   size_t global;
-  char*  kernel_src;
+  char** kernel_src;
+  int  nokernels;
 
   cl_device_id     device_id;
   cl_context       context;
@@ -53,10 +58,10 @@ int main (int argc, char** argv)
   commands = clCreateCommandQueueWithProperties(context, device_id,
 						      0, &err);
 
-  kernel_src = readfile("cl_kernels/mult.cl");
-  
-  program = clCreateProgramWithSource(context,     1,
-				      &kernel_src, NULL,
+  kernel_src = loadpath("./cl_kernels/", &nokernels);
+
+  program = clCreateProgramWithSource(context,    nokernels,
+				      kernel_src, NULL,
 				      &err);
 
   err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
@@ -110,4 +115,9 @@ int main (int argc, char** argv)
   free(h_c);
   
   return 0;
+}
+
+int inner_main ()
+{
+  
 }

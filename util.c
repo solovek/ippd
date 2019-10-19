@@ -1,6 +1,8 @@
+#include <dirent.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <time.h>
 
@@ -86,6 +88,47 @@ char* readfile (char* path)
   fclose(in);
  file_err:
   return str;
+}
+
+char** loadpath (char* path, int* len)
+{
+  DIR*           dir;
+  struct dirent* entry;
+  char**         file;
+  
+  file = NULL;
+  *len = 0;
+  
+  if (!(dir = opendir(path))) {
+    perror(NULL);
+    goto dir_err;
+  }
+
+  /* i think 512 is a pretty reasonable number of files */
+  file = calloc(512, sizeof(*file));
+  
+  while ((entry = readdir(dir))) {
+    char* fullpath;
+    if (!strcmp(entry->d_name, "." ) ||
+	!strcmp(entry->d_name, "..") ||
+	entry->d_type == DT_DIR)
+      continue;
+
+    fullpath = calloc(strlen(path) + strlen(entry->d_name),
+		      sizeof(*fullpath));
+    fullpath = strcat(strcat(fullpath,
+			     path),
+		      entry->d_name);
+    
+    file[(*len)++] = readfile(fullpath);
+
+    free(fullpath);
+  }
+
+  file = realloc(file, (*len+1) * sizeof(*file));
+
+ dir_err:
+  return file;
 }
 
 #ifdef __OPENCL_VERSION__
