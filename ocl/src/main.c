@@ -92,7 +92,7 @@ int main (int argc, char** argv)
     
     step = 1;
     
-    for (i = 0, x = 0; i < length; i++, x += step) {
+    for (i = 0, x = 0; i < gsz; i++, x += step) {
       h_a[i] = foo(x);
       h_b[i] = x;
     }
@@ -133,7 +133,7 @@ int main (int argc, char** argv)
   prnarrf(h_a, gsz);
   prnarrf(h_b, gsz);
   prnarrf(h_c, gsz);
-  
+
   clReleaseMemObject(d_a);
   clReleaseMemObject(d_b);
   clReleaseMemObject(d_c);
