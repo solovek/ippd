@@ -1,12 +1,13 @@
-__kernel void trap (
-  __global float* y,   /* height */
-  __global float* x,   /* width */
-  __global float* area,
-  __const unsigned int sz)
+kernel void trap (
+  global float* y, /* f(x) */
+  global float* x,
+  global float* area,
+  const unsigned int sz)
 {
   int i = get_global_id(0);
-  if (i < sz) {
-    /* 1/2(b-a) * (f(a) + f(b)) */
-    //b[i] = (a[i] + a[i + 1]);
-  }
+  if (i < sz)
+    /* (b-a)/2n * (f(a) + f(b)) */
+    area[i] =
+      (x[i+1] - x[i]) / (2 * sz) *
+      (y[i]   + y[i+1]);
 }

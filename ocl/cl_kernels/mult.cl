@@ -1,8 +1,8 @@
-__kernel void vmult (
-  __global float* a,
-  __global float* b,
-  __global float* c,
-  __const unsigned int sz)
+kernel void vmult (
+  global float* a,
+  global float* b,
+  global float* c,
+  const unsigned int sz)
 {
   int i = get_global_id(0);
   if (i < sz)

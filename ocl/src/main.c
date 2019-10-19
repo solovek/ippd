@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <CL/cl.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 extern void   prnarrf  (float*, int);
@@ -10,7 +12,7 @@ extern char** loadpath (char*, int*);
 
 const int gsz = 5;
 
-int inner_main ();
+float foo (float);
 
 int main (int argc, char** argv)
 {
@@ -36,14 +38,6 @@ int main (int argc, char** argv)
 
   cl_uint       noplatforms;
   cl_platform_id* platform;
-
-  srand(time(NULL));
-  
-  h_a = rndarrf(gsz);
-  h_b = rndarrf(gsz);
-  h_c = rndarrf(gsz);
-
-  length = gsz * sizeof(float);
   
   err = clGetPlatformIDs(0, NULL, &noplatforms);
   
@@ -66,7 +60,6 @@ int main (int argc, char** argv)
   program = clCreateProgramWithSource(context,    nokernels,
 				      kernel_src, NULL,
 				      &err);
-
   err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 
   if (err == CL_BUILD_PROGRAM_FAILURE) {
@@ -76,20 +69,28 @@ int main (int argc, char** argv)
 			  str,                  NULL);
     printf("%s\n", str);
   }
-  
-  kernel = clCreateKernel(program, "vmult", &err);
 
-  if (err == CL_INVALID_PROGRAM_EXECUTABLE) {
-    printf("deu caca\n");
+  if (!strcmp(argv[1], "mult")) { /* exercises 1 and 2 */
+    srand(time(NULL));
+
+    h_a = rndarrf(gsz);
+    h_b = rndarrf(gsz);
+    h_c = rndarrf(gsz);
+    
+    length = gsz * sizeof(float);
+    
+    kernel = clCreateKernel(program, "vmult", &err);
+  
+    d_a = clCreateBuffer(context, CL_MEM_READ_ONLY,
+			 length,  NULL, &err);
+    d_b = clCreateBuffer(context, CL_MEM_READ_ONLY,
+			 length,  NULL, &err);
+    d_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
+			 length,  NULL, &err);
+  } else if (!strcmp(argv[1], "trap")) { /* exercise 3 */
+    /* tbd */
   }
   
-  d_a = clCreateBuffer(context, CL_MEM_READ_ONLY,
-		        length, NULL, &err);
-  d_b = clCreateBuffer(context, CL_MEM_READ_ONLY,
-		        length, NULL, &err);
-  d_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
-		        length, NULL, &err);
-
   err = clEnqueueWriteBuffer(commands, d_a, CL_TRUE,    0,
 			     length,   h_a,       0, NULL,
 			     NULL);
@@ -103,15 +104,15 @@ int main (int argc, char** argv)
   err |= clSetKernelArg(kernel, 3, sizeof(unsigned int), &gsz);
 
   global = gsz;
-  err = clEnqueueNDRangeKernel(commands, kernel,    1,
-			           NULL,  &global, NULL,
-			              0,     NULL, NULL);
+  err = clEnqueueNDRangeKernel(commands, kernel,  1,
+			       NULL,     &global, NULL,
+			       0,        NULL,    NULL);
 
   err = clFinish(commands);
 
-  err = clEnqueueReadBuffer(commands, d_c, CL_TRUE,    0,
-			      length, h_c,       0, NULL,
-			        NULL);
+  err = clEnqueueReadBuffer(commands, d_c, CL_TRUE, 0,
+			    length,   h_c, 0,       NULL,
+			    NULL);
 
   prnarrf(h_a, gsz);
   prnarrf(h_b, gsz);
@@ -130,9 +131,4 @@ int main (int argc, char** argv)
   free(h_c);
   
   return 0;
-}
-
-int inner_main ()
-{
-  
 }

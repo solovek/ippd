@@ -15,7 +15,7 @@ EXE = mult
 all: $(EXE) test
 
 test: $(EXE)
-	./$(EXE)
+	./$(EXE) mult
 
 clean:
 	rm $(OBJ) $(EXE)
