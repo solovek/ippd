@@ -1,6 +1,7 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 int* rndarr (int);
 int* msort  (int*, int);
@@ -23,6 +24,7 @@ int main (int argc, char** argv)
     sz = atoi(argv[1]);
     
     if (!grank) { /* top */
+      srand(time(NULL));
       v = rndarr(sz);
     }
 

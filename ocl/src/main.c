@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <CL/cl.h>
 #include <stdlib.h>
+#include <time.h>
 
 extern void   prnarrf  (float*, int);
 extern float* rndarrf  (int);
@@ -35,6 +36,8 @@ int main (int argc, char** argv)
 
   cl_uint       noplatforms;
   cl_platform_id* platform;
+
+  srand(time(NULL));
   
   h_a = rndarrf(gsz);
   h_b = rndarrf(gsz);

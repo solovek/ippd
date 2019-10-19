@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 int* rndarr (int);
 void prnarr (int*, int);
@@ -13,6 +14,8 @@ int main (int argc, char** argv)
   int  sz;
 
   if (argc == 2) {
+    srand(time(NULL));
+    
     sz = atoi(argv[1]);
     v  = rndarr(sz);
 
