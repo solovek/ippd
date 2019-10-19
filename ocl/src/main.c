@@ -68,10 +68,18 @@ int main (int argc, char** argv)
 				      &err);
 
   err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+
+  if (err == CL_BUILD_PROGRAM_FAILURE) {
+    char str[1024];
+    clGetProgramBuildInfo(program,              device_id,
+			  CL_PROGRAM_BUILD_LOG, 1024,
+			  str,                  NULL);
+    printf("%s\n", str);
+  }
   
   kernel = clCreateKernel(program, "vmult", &err);
 
-  if (!err) {
+  if (err == CL_INVALID_PROGRAM_EXECUTABLE) {
     printf("deu caca\n");
   }
   
