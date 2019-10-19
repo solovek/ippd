@@ -68,9 +68,13 @@ int main (int argc, char** argv)
 				      &err);
 
   err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
-
+  
   kernel = clCreateKernel(program, "vmult", &err);
 
+  if (!err) {
+    printf("deu caca\n");
+  }
+  
   d_a = clCreateBuffer(context, CL_MEM_READ_ONLY,
 		        length, NULL, &err);
   d_b = clCreateBuffer(context, CL_MEM_READ_ONLY,
