@@ -5,9 +5,9 @@ kernel void trap (
   const unsigned int sz)
 {
   int i = get_global_id(0);
-  if (i < sz)
-    /* (b-a)/2n * (f(a) + f(b)) */
+  if (i < sz - 1)
+    /* (b-a)/2 * (f(a) + f(b)) */
     area[i] =
-      (x[i+1] - x[i]) / (2 * sz) *
+      (x[i+1] - x[i]) / 2 *
       (y[i]   + y[i+1]);
 }
