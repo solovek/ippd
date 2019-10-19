@@ -76,20 +76,36 @@ int main (int argc, char** argv)
     h_a = rndarrf(gsz);
     h_b = rndarrf(gsz);
     h_c = rndarrf(gsz);
-    
-    length = gsz * sizeof(float);
+
+    length = gsz * sizeof(*h_a);
     
     kernel = clCreateKernel(program, "vmult", &err);
-  
-    d_a = clCreateBuffer(context, CL_MEM_READ_ONLY,
-			 length,  NULL, &err);
-    d_b = clCreateBuffer(context, CL_MEM_READ_ONLY,
-			 length,  NULL, &err);
-    d_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
-			 length,  NULL, &err);
   } else if (!strcmp(argv[1], "trap")) { /* exercise 3 */
-    /* tbd */
+    float x;
+    float step;
+
+    length = gsz * sizeof(*h_a);
+
+    h_a = malloc(length);
+    h_b = malloc(length);
+    h_c = malloc(length);
+    
+    step = 1;
+    
+    for (i = 0, x = 0; i < length; i++, x += step) {
+      h_a[i] = foo(x);
+      h_b[i] = x;
+    }
+
+    kernel = clCreateKernel(program, "trap", &err);
   }
+
+  d_a = clCreateBuffer(context, CL_MEM_READ_ONLY,
+		       length,  NULL, &err);
+  d_b = clCreateBuffer(context, CL_MEM_READ_ONLY,
+		       length,  NULL, &err);
+  d_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
+		       length,  NULL, &err);
   
   err = clEnqueueWriteBuffer(commands, d_a, CL_TRUE,    0,
 			     length,   h_a,       0, NULL,
@@ -131,4 +147,9 @@ int main (int argc, char** argv)
   free(h_c);
   
   return 0;
+}
+
+float foo (float x)
+{
+  return 10;
 }

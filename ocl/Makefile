@@ -16,6 +16,7 @@ all: $(EXE) test
 
 test: $(EXE)
 	./$(EXE) mult
+	./$(EXE) trap
 
 clean:
 	rm $(OBJ) $(EXE)
