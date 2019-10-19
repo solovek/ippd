@@ -27,7 +27,7 @@ float* rndarrf (int sz)
   v = malloc(sz * sizeof(float));
 
   for (i = 0; i < sz; i++)
-    v[i] = rand() % 100;
+    v[i] = (float)rand() / 1000;
 
   return v;
 }

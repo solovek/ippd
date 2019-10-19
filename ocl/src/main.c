@@ -10,7 +10,7 @@ extern float* rndarrf  (int);
 extern char*  readfile (char*);
 extern char** loadpath (char*, int*);
 
-const int gsz = 5;
+const int gsz = 9;
 
 float foo (float);
 
@@ -81,8 +81,15 @@ int main (int argc, char** argv)
     
     kernel = clCreateKernel(program, "vmult", &err);
   } else if (!strcmp(argv[1], "trap")) { /* exercise 3 */
-    float x;
-    float step;
+    float(* f)(float); /* integration target */
+    float   x;
+    float   step;
+
+    f = foo;
+    
+    if (argc > 2) {
+      /* read argv */
+    }
 
     length = gsz * sizeof(*h_a);
 
@@ -90,10 +97,10 @@ int main (int argc, char** argv)
     h_b = malloc(length);
     h_c = malloc(length);
     
-    step = 1;
+    step = 0.5;
     
     for (i = 0, x = 0; i < gsz; i++, x += step) {
-      h_a[i] = foo(x);
+      h_a[i] = f(x);
       h_b[i] = x;
     }
 
