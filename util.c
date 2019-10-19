@@ -124,8 +124,9 @@ char** loadpath (char* path, int* len)
     free(fullpath);
   }
 
-  file = realloc(file, (*len+1) * sizeof(*file));
+  file = realloc(file, (*len) * sizeof(*file));
 
+  closedir(dir);
  dir_err:
   return file;
 }
