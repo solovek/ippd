@@ -10,9 +10,14 @@ extern float* rndarrf  (int);
 extern char*  readfile (char*);
 extern char** loadpath (char*, int*);
 
-const int gsz = 9;
+extern float(* flookup(char*)) (float);
+
+int gsz = 5;
 
 float foo (float);
+
+const char* const errstr_usage =
+  "usage: %s [vmult/integral] [function] [sample] [start] [end]\n";
 
 int main (int argc, char** argv)
 {
@@ -24,7 +29,7 @@ int main (int argc, char** argv)
   int    length;
   size_t global;
   char** kernel_src;
-  int  nokernels;
+  int    nofiles;
 
   cl_device_id     device_id;
   cl_context       context;
@@ -38,6 +43,11 @@ int main (int argc, char** argv)
 
   cl_uint       noplatforms;
   cl_platform_id* platform;
+
+  if (argc < 2) {
+    printf(errstr_usage, argv[0]);
+    return 0;
+  }
   
   err = clGetPlatformIDs(0, NULL, &noplatforms);
   
@@ -55,9 +65,9 @@ int main (int argc, char** argv)
   commands = clCreateCommandQueueWithProperties(context, device_id,
 						      0, &err);
 
-  kernel_src = loadpath("./cl_kernels/", &nokernels);
+  kernel_src = loadpath("./cl_kernels/", &nofiles);
 
-  program = clCreateProgramWithSource(context,    nokernels,
+  program = clCreateProgramWithSource(context,    nofiles,
 				      kernel_src, NULL,
 				      &err);
   err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
@@ -70,7 +80,7 @@ int main (int argc, char** argv)
     printf("%s\n", str);
   }
 
-  if (!strcmp(argv[1], "mult")) { /* exercises 1 and 2 */
+  if (!strcmp(argv[1], "vmult")) { /* exercises 1 and 2 */
     srand(time(NULL));
 
     h_a = rndarrf(gsz);
@@ -78,26 +88,26 @@ int main (int argc, char** argv)
     h_c = rndarrf(gsz);
 
     length = gsz * sizeof(*h_a);
-    
     kernel = clCreateKernel(program, "vmult", &err);
-  } else if (!strcmp(argv[1], "trap")) { /* exercise 3 */
+  } else if (!strcmp(argv[1], "integral")) { /* exercise 3 */
     float(* f)(float); /* integration target */
     float   x;
     float   step;
-
-    f = foo;
     
-    if (argc > 2) {
-      /* read argv */
+    if (argc < 6) {
+      printf(errstr_usage, argv[0]);
+      goto argv_err;
     }
+
+    f = flookup(argv[2]);
+    step = atof(argv[3]);
+    gsz = (atof(argv[5]) - atof(argv[4])) / step + 1;
 
     length = gsz * sizeof(*h_a);
 
     h_a = malloc(length);
     h_b = malloc(length);
     h_c = malloc(length);
-    
-    step = 0.5;
     
     for (i = 0, x = 0; i < gsz; i++, x += step) {
       h_a[i] = f(x);
@@ -136,12 +146,11 @@ int main (int argc, char** argv)
   err = clEnqueueReadBuffer(commands, d_c, CL_TRUE, 0,
 			    length,   h_c, 0,       NULL,
 			    NULL);
-
-  prnarrf(h_a, gsz);
-  prnarrf(h_b, gsz);
-  prnarrf(h_c, gsz);
-
-  if (!strcmp(argv[1], "trap")) {
+  if (!strcmp(argv[1], "vmult")) {
+    prnarrf(h_a, gsz);
+    prnarrf(h_b, gsz);
+    prnarrf(h_c, gsz);
+  } else if (!strcmp(argv[1], "integral")) {
     float acc;
     for (i = 0, acc = 0; i < gsz-1; i++) {
       acc += h_c[i];
@@ -149,18 +158,23 @@ int main (int argc, char** argv)
 
     printf("area: %f\n", acc);
   }
-  
-  clReleaseMemObject(d_a);
-  clReleaseMemObject(d_b);
-  clReleaseMemObject(d_c);
-  clReleaseProgram(program);
-  clReleaseKernel(kernel);
-  clReleaseCommandQueue(commands);
-  clReleaseContext(context);
 
   free(h_a);
   free(h_b);
   free(h_c);
+  
+  clReleaseMemObject(d_a);
+  clReleaseMemObject(d_b);
+  clReleaseMemObject(d_c);
+  clReleaseKernel(kernel);
+ argv_err:
+  clReleaseProgram(program);
+  clReleaseCommandQueue(commands);
+  clReleaseContext(context);
+
+  for (i = 0; i < nofiles; i++)
+    free(kernel_src[i]);
+  free(kernel_src);
   
   return 0;
 }

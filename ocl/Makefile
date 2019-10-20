@@ -7,16 +7,26 @@ DEP = OpenCL
 CFLAG = `pkg-config $(DEP) --cflags`
 LFLAG = `pkg-config $(DEP) --libs`
 
-EXE = mult
+EXE = main
 
 .SUFFIX: .c .o
-.PHONY: all test clean
+.PHONY: all test clean mult integral
 
 all: $(EXE) test
 
-test: $(EXE)
-	./$(EXE) mult
-	./$(EXE) trap
+test: mult integral
+
+mult: $(EXE)
+	./$(EXE) vmult
+
+#defaults
+TARGET = linear
+SAMPLE = 0.5
+START  = 0
+END    = 10
+
+integral: $(EXE)
+	./$(EXE) integral $(TARGET) $(SAMPLE) $(START) $(END)
 
 clean:
 	rm $(OBJ) $(EXE)
