@@ -83,9 +83,10 @@ int main (int argc, char** argv)
 
     h_a = rndarrf(gsz);
     h_b = rndarrf(gsz);
-    h_c = rndarrf(gsz);
 
     length = gsz * sizeof(*h_a);
+
+    h_c = malloc(length);
     
     clCall3("vmult", h_a, h_b, h_c, length);
     
@@ -93,10 +94,10 @@ int main (int argc, char** argv)
     prnarrf(h_b, gsz);
     prnarrf(h_c, gsz);
   } else if (!strcmp(argv[1], "integral")) { /* exercise 3 */
-    float(* f)(float); /* integration target */
-    float   x;
-    float   step;
-    float   acc;
+    double(* f)(double); /* integration target */
+    double   x;
+    double   step;
+    double   acc;
     
     if (argc < 6) {
       printf(errstr_usage, argv[0]);
@@ -105,7 +106,7 @@ int main (int argc, char** argv)
 
     f = flookup(argv[2]);
     step = atof(argv[3]);
-    gsz = (atof(argv[5]) - atof(argv[4])) / step + 1;
+    gsz  =(atof(argv[5]) - atof(argv[4])) / step + 1;
 
     length = gsz * sizeof(*h_a);
 
@@ -119,12 +120,19 @@ int main (int argc, char** argv)
     }
 
     clCall3("trap", h_a, h_b, h_c, length);
-    
+    /*
+    printf("x: ");
+    prnarrf(h_b, gsz);
+    printf("f(x): ");
+    prnarrf(h_a, gsz);
+    printf("areas: ");
+    prnarrf(h_c, gsz);
+    */
     for (i = 0, acc = 0; i < gsz-1; i++) {
       acc += h_c[i];
     }
-
-    printf("area: %f\n", acc);
+    
+    printf("area: %.2f\n", acc);
   }
 
   free(h_a);

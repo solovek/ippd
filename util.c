@@ -27,7 +27,7 @@ float* rndarrf (int sz)
   v = malloc(sz * sizeof(float));
 
   for (i = 0; i < sz; i++)
-    v[i] = (float)rand() / 1000;
+    v[i] = (float)rand() / 10000000;
 
   return v;
 }
@@ -47,7 +47,7 @@ void prnarrf (float* v, int sz)
   int i;
 
   for (i = 0; i < sz; i++)
-    printf("%f ", v[i]);
+    printf("%.2f ", v[i]);
   printf("\n");
 }
 
